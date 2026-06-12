@@ -50,6 +50,19 @@ function configPath(): string {
   return candidates[0]
 }
 
+/** Localise un fichier du dossier deploy (dev = projet/deploy, prod = à côté de l'exe) */
+function deployPath(name: string): string {
+  const candidates = [
+    join(dirname(app.getPath('exe')), name), // prod : binaire dans deploy/
+    join(app.getAppPath(), 'deploy', name), // dev : racine projet/deploy
+    join(process.cwd(), 'deploy', name) // dev : cwd/deploy (fallback)
+  ]
+  for (const p of candidates) {
+    if (p && existsSync(p)) return p
+  }
+  return candidates[0]
+}
+
 /** Charge la liste des applications */
 export function loadApps(): AppConfig[] {
   try {
@@ -63,16 +76,8 @@ export function loadApps(): AppConfig[] {
   }
 }
 
-/** Exécute une commande systemctl et renvoie { ok, out } */
-function systemctl(
-  action: 'start' | 'stop' | 'is-active',
-  service: string
-): Promise<{ ok: boolean; out: string }> {
-  // start/stop nécessitent les privilèges → sudo (sudoers NOPASSWD requis).
-  // is-active est en lecture seule → pas de sudo.
-  const needsSudo = action === 'start' || action === 'stop'
-  const cmd = needsSudo ? 'sudo' : 'systemctl'
-  const args = needsSudo ? ['systemctl', action, service] : [action, service]
+/** Exécute une commande et renvoie { ok, out } (stdout+stderr) */
+function run(cmd: string, args: string[]): Promise<{ ok: boolean; out: string }> {
   return new Promise((resolve) => {
     const child = spawn(cmd, args)
     let out = ''
@@ -81,6 +86,19 @@ function systemctl(
     child.on('close', (code) => resolve({ ok: code === 0, out: out.trim() }))
     child.on('error', (e) => resolve({ ok: false, out: String(e) }))
   })
+}
+
+/** Exécute une commande systemctl et renvoie { ok, out } */
+function systemctl(
+  action: 'start' | 'stop' | 'is-active',
+  service: string
+): Promise<{ ok: boolean; out: string }> {
+  // start/stop nécessitent les privilèges → sudo (sudoers NOPASSWD requis).
+  // is-active est en lecture seule → pas de sudo.
+  const needsSudo = action === 'start' || action === 'stop'
+  return needsSudo
+    ? run('sudo', ['systemctl', action, service])
+    : run('systemctl', [action, service])
 }
 
 /** Arrête TOUS les services d'apps — appelé au démarrage du launcher */
@@ -114,21 +132,27 @@ export async function launch(
   if (USE_SYSTEMD) {
     if (!cfg.service) return { id, status: 'error', error: 'Champ "service" manquant' }
 
-    // Le script vit à côté du binaire (dossier deploy)
-    const script = join(dirname(app.getPath('exe')), 'rotate-launch.sh')
+    // Le script vit dans le dossier deploy (résolu en dev comme en prod)
+    const script = deployPath('rotate-launch.sh')
+    if (!existsSync(script)) {
+      return { id, status: 'error', error: `Script introuvable: ${script}` }
+    }
     const rot = cfg.rotation ? 'on' : 'off'
 
-    try {
-      // Détaché via systemd-run → survit au "restart lightdm" qui tue le launcher.
-      const child = spawn('sudo', ['systemd-run', '--collect', script, rot, cfg.service], {
-        detached: true,
-        stdio: 'ignore'
-      })
-      child.unref()
-      return { id, status: 'running' }
-    } catch (e) {
-      return { id, status: 'error', error: String(e) }
-    }
+    // systemd-run démarre une unité transitoire (détachée du launcher) puis rend la main :
+    // le script survit au "restart startx" qui tue le launcher. On attend juste le code de
+    // retour de systemd-run pour remonter une éventuelle erreur (sudo, unité, etc.).
+    // Via /bin/bash → pas besoin du bit exécutable sur le script.
+    const r = await run('sudo', [
+      'systemd-run',
+      '--collect',
+      '/bin/bash',
+      script,
+      rot,
+      cfg.service
+    ])
+    if (!r.ok) return { id, status: 'error', error: r.out || 'Échec systemd-run' }
+    return { id, status: 'running' }
   }
 
   // --- Dev Windows : spawn direct ---
