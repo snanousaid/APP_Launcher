@@ -1,0 +1,12 @@
+[Unit]
+Description=Nextronic Mediot
+After=multi-user.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/nextronic/APP_Launcher/deploy
+ExecStart=/home/nextronic/APP_Launcher/deploy/mediot.sh
+
+[Install]
+WantedBy=multi-user.target

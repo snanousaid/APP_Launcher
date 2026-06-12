@@ -1,0 +1,42 @@
+[
+  {
+    "id": "fridge",
+    "name": "Fridge",
+    "description": "Application réfrigérateur",
+    "service": "fridge.service",
+    "exePath": "C:/Windows/System32/notepad.exe",
+    "args": [],
+    "icon": "Refrigerator",
+    "color": "#3b82f6"
+  },
+  {
+    "id": "mediot",
+    "name": "Mediot",
+    "description": "Application Mediot",
+    "service": "mediot.service",
+    "exePath": "C:/Windows/System32/calc.exe",
+    "args": [],
+    "icon": "Activity",
+    "color": "#10b981"
+  },
+  {
+    "id": "aptiv",
+    "name": "Aptiv",
+    "description": "Application Aptiv",
+    "service": "aptiv.service",
+    "exePath": "C:/Windows/System32/mspaint.exe",
+    "args": [],
+    "icon": "Cpu",
+    "color": "#f59e0b"
+  },
+  {
+    "id": "terminal",
+    "name": "Terminal",
+    "description": "Application Terminal",
+    "service": "terminal.service",
+    "exePath": "C:/Windows/explorer.exe",
+    "args": [],
+    "icon": "Terminal",
+    "color": "#a855f7"
+  }
+]
