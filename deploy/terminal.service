@@ -7,6 +7,8 @@ Type=simple
 User=root
 WorkingDirectory=/home/nextronic/APP_Launcher/deploy
 ExecStart=/home/nextronic/APP_Launcher/deploy/terminal.sh
+# Retour au menu en écran droit : rm xorg.conf -> restart startx -> start app-launcher
+ExecStopPost=/bin/bash /home/nextronic/APP_Launcher/deploy/rotate-launch.sh off app-launcher.service
 
 [Install]
 WantedBy=multi-user.target

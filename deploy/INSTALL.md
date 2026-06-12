@@ -79,8 +79,10 @@ sudo cp *.service /etc/systemd/system/
 sudo systemctl daemon-reload
 ```
 
-> Retour-au-menu (optionnel) : ajouter dans chaque `<app>.service`, section `[Service]` :
-> `ExecStopPost=/usr/bin/systemctl start app-launcher.service`
+> Retour au menu : déjà intégré dans chaque `<app>.service` via
+> `ExecStopPost=/bin/bash .../rotate-launch.sh off app-launcher.service`.
+> Quand l'app se ferme → `rm xorg.conf` → `restart startx` → `start app-launcher`
+> (le launcher revient toujours en **écran droit**).
 
 ## 5. Activer et démarrer
 
@@ -127,4 +129,9 @@ boot ─▶ app-launcher.service (menu, stoppe les apps)
                                    ├─ cp xorg.conf /etc/X11/
                                    ├─ restart startx  (ferme le launcher)
                                    └─ start viogris.service  (écran tourné)
+                                         │
+                                         └─ viogris fermée ─▶ ExecStopPost ─▶ rotate-launch.sh off app-launcher.service
+                                                                ├─ rm xorg.conf
+                                                                ├─ restart startx
+                                                                └─ start app-launcher  (écran droit)
 ```
