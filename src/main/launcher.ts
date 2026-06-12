@@ -16,6 +16,8 @@ export interface AppConfig {
   description?: string
   /** Nom de l'unité systemd, ex: "app1.service" (utilisé en prod ARM64) */
   service?: string
+  /** true = écran tourné (copie xorg.conf), false = écran droit (supprime xorg.conf) */
+  rotation?: boolean
   /** Chemin de l'exécutable (utilisé seulement en dev Windows) */
   exePath?: string
   args?: string[]
@@ -97,7 +99,9 @@ export async function stopAllApps(): Promise<void> {
 
 /**
  * Lance une application.
- * Linux  : systemctl start appX.service, puis arrêt du launcher (app.quit).
+ * Linux  : délègue à rotate-launch.sh (gère rotation écran + restart lightdm + start service).
+ *          Le script est lancé détaché via systemd-run pour survivre au restart de lightdm
+ *          qui tue le launcher.
  * Windows: spawn de l'exe (test UI en dev).
  */
 export async function launch(
@@ -110,12 +114,21 @@ export async function launch(
   if (USE_SYSTEMD) {
     if (!cfg.service) return { id, status: 'error', error: 'Champ "service" manquant' }
 
-    const r = await systemctl('start', cfg.service)
-    if (!r.ok) return { id, status: 'error', error: r.out || 'Échec systemctl start' }
+    // Le script vit à côté du binaire (dossier deploy)
+    const script = join(dirname(app.getPath('exe')), 'rotate-launch.sh')
+    const rot = cfg.rotation ? 'on' : 'off'
 
-    // App lancée → on arrête le launcher (le service sort proprement, sans Restart)
-    setTimeout(() => app.quit(), 400)
-    return { id, status: 'running', pid: undefined }
+    try {
+      // Détaché via systemd-run → survit au "restart lightdm" qui tue le launcher.
+      const child = spawn('sudo', ['systemd-run', '--collect', script, rot, cfg.service], {
+        detached: true,
+        stdio: 'ignore'
+      })
+      child.unref()
+      return { id, status: 'running' }
+    } catch (e) {
+      return { id, status: 'error', error: String(e) }
+    }
   }
 
   // --- Dev Windows : spawn direct ---

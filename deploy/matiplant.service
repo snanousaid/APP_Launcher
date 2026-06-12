@@ -1,12 +1,12 @@
 [Unit]
-Description=Nextronic Mediot
+Description=Nextronic Matiplant
 After=multi-user.target
 
 [Service]
 Type=simple
 User=root
 WorkingDirectory=/home/nextronic/APP_Launcher/deploy
-ExecStart=/home/nextronic/APP_Launcher/deploy/mediot.sh
+ExecStart=/home/nextronic/APP_Launcher/deploy/matiplant.sh
 
 [Install]
 WantedBy=multi-user.target

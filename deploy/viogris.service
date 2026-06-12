@@ -1,12 +1,12 @@
 [Unit]
-Description=Nextronic Aptiv
+Description=Nextronic Viogris
 After=multi-user.target
 
 [Service]
 Type=simple
 User=root
 WorkingDirectory=/home/nextronic/APP_Launcher/deploy
-ExecStart=/home/nextronic/APP_Launcher/deploy/aptiv.sh
+ExecStart=/home/nextronic/APP_Launcher/deploy/viogris.sh
 
 [Install]
 WantedBy=multi-user.target
