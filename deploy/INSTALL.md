@@ -62,7 +62,6 @@ Tout va dans `/home/nextronic/APP_Launcher/deploy/` :
 ├─ app-launcher.service
 ├─ reset-rotation.service (supprime xorg.conf au boot → launcher droit)
 ├─ rotate-launch.sh      (gère rotation + restart startx + start app)
-├─ overlay-back.sh       (bouton flottant "Retour" par-dessus les apps)
 ├─ xorg.conf             (config rotation écran)
 ├─ fridge      + fridge.sh    + fridge.service
 ├─ matiplant   + matiplant.sh + matiplant.service
@@ -75,14 +74,6 @@ Tout va dans `/home/nextronic/APP_Launcher/deploy/` :
 
 ```bash
 chmod +x /home/nextronic/APP_Launcher/deploy/*.sh
-```
-
-### Bouton "Retour" sur les apps (yad)
-Un bouton flottant `⟲ Retour` s'affiche par-dessus chaque app (via `overlay-back.sh`).
-Au clic → l'app s'arrête → retour au menu. Le bouton se ré-élève au-dessus toutes les 3 s
-(au cas où l'app s'affiche après lui). Installer yad **et xdotool** :
-```bash
-sudo apt install -y yad xdotool
 ```
 
 ## 4. Installer les services systemd

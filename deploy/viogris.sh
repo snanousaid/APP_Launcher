@@ -8,12 +8,4 @@ export DISPLAY=:0
 sudo -iu nextronic pm2 start ACL
 trap 'sudo -iu nextronic pm2 stop ACL' EXIT
 
-# Lancer l'app en arrière-plan, puis afficher le bouton Retour par-dessus
-./viogris --no-sandbox --disable-gpu &
-APP_PID=$!
-sleep 2
-bash /home/nextronic/APP_Launcher/deploy/overlay-back.sh &
-OVERLAY_PID=$!
-
-wait $APP_PID
-kill $OVERLAY_PID 2>/dev/null
+./viogris --no-sandbox --disable-gpu
