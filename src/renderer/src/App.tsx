@@ -12,32 +12,32 @@ function App(): JSX.Element {
       <Toaster theme="dark" richColors position="top-center" />
 
       {/* En-tête */}
-      <header className="flex items-center justify-between border-b border-slate-800/60 bg-slate-950/50 px-8 py-5 backdrop-blur-sm">
+      <header className="flex shrink-0 items-center justify-between border-b border-slate-800/60 bg-slate-950/50 px-6 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
-            <LayoutGrid size={20} className="text-white" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <LayoutGrid size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">
+            <h1 className="text-lg font-bold tracking-tight">
               <span className="text-blue-500">APP</span>
               <span className="text-white"> Launcher</span>
             </h1>
-            <p className="text-xs text-slate-500">Contrôle des applications</p>
+            <p className="text-[11px] text-slate-500">Contrôle des applications</p>
           </div>
         </div>
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
           {apps.length} application{apps.length > 1 ? 's' : ''}
         </span>
       </header>
 
-      {/* Grille des applications */}
-      <main className="flex-1 overflow-y-auto p-8">
+      {/* Grille des applications — remplit l'écran sans scroll */}
+      <main className="flex-1 overflow-hidden p-4">
         {apps.length === 0 ? (
           <div className="flex h-full items-center justify-center text-slate-500">
             Aucune application configurée. Vérifiez apps.config.json
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid h-full auto-rows-fr grid-cols-2 gap-4">
             {apps.map((app) => (
               <AppCard
                 key={app.id}

@@ -24,7 +24,7 @@ export default function AppCard({ app, status, onToggle }: AppCardProps): JSX.El
 
   return (
     <div
-      className={`relative flex flex-col rounded-2xl border bg-slate-900 p-6 transition-all duration-200 ${
+      className={`relative flex h-full flex-col rounded-2xl border bg-slate-900 p-5 transition-all duration-200 ${
         running ? 'border-green-500/60 shadow-lg shadow-green-500/10' : 'border-slate-700'
       }`}
     >
@@ -56,7 +56,7 @@ export default function AppCard({ app, status, onToggle }: AppCardProps): JSX.El
       {/* Bouton lancer/arrêter */}
       <button
         onClick={() => onToggle(app.id)}
-        className={`mt-5 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-colors ${
+        className={`mt-auto flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-colors ${
           running
             ? 'bg-red-600 text-white hover:bg-red-500'
             : 'bg-blue-600 text-white hover:bg-blue-500'
