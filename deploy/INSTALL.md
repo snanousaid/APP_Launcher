@@ -16,6 +16,10 @@ Le launcher et les apps sont des **services systemd** mutuellement exclusifs, pi
 `xorg.conf` (dans deploy) applique la rotation (CCW + matrice tactile). Apps `rotation: true`
 (viogris, terminal) → écran tourné ; `rotation: false` (fridge, matiplant) + launcher → écran droit.
 
+**Reboot pendant une app tournée** : `reset-rotation.service` supprime `xorg.conf` au boot
+(avant `startx`) → le launcher démarre toujours droit. Comme il ne s'exécute qu'au boot, il ne
+gêne pas la rotation dynamique (qui fait `cp xorg.conf` + `restart startx` après le boot).
+
 Tout est déployé dans **un seul dossier** : `/home/nextronic/APP_Launcher/deploy/`.
 
 > `apps.config.json` n'est PAS un fichier de ce dossier : il est **embarqué dans le binaire**
@@ -56,6 +60,7 @@ Tout va dans `/home/nextronic/APP_Launcher/deploy/` :
 ├─ app-launcher          (binaire du launcher, depuis dist/)
 ├─ launcher.sh
 ├─ app-launcher.service
+├─ reset-rotation.service (supprime xorg.conf au boot → launcher droit)
 ├─ rotate-launch.sh      (gère rotation + restart startx + start app)
 ├─ xorg.conf             (config rotation écran)
 ├─ fridge      + fridge.sh    + fridge.service
@@ -89,6 +94,7 @@ sudo systemctl daemon-reload
 ```bash
 # Le launcher démarre au boot ; les apps NON (lancées à la demande)
 sudo systemctl enable app-launcher.service
+sudo systemctl enable reset-rotation.service   # écran droit garanti au boot
 sudo systemctl disable fridge.service matiplant.service viogris.service terminal.service
 
 # Démarrer maintenant

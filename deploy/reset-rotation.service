@@ -1,0 +1,11 @@
+[Unit]
+Description=Écran droit au boot (mode launcher) - supprime xorg.conf avant startx
+Before=startx.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/rm -f /etc/X11/xorg.conf
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

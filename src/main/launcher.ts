@@ -50,12 +50,14 @@ function configPath(): string {
   return candidates[0]
 }
 
-/** Localise un fichier du dossier deploy (dev = projet/deploy, prod = à côté de l'exe) */
+/** Localise un fichier du dossier deploy (dev = projet/deploy, prod = à côté du launcher) */
 function deployPath(name: string): string {
   const candidates = [
-    join(dirname(app.getPath('exe')), name), // prod : binaire dans deploy/
+    join(process.cwd(), name), // prod : launcher.sh tourne depuis deploy/ (cwd = deploy)
+    join(dirname(app.getPath('exe')), name), // prod : binaire dans deploy/ (build non-AppImage)
     join(app.getAppPath(), 'deploy', name), // dev : racine projet/deploy
-    join(process.cwd(), 'deploy', name) // dev : cwd/deploy (fallback)
+    join(process.cwd(), 'deploy', name), // dev : cwd/deploy
+    `/home/nextronic/APP_Launcher/deploy/${name}` // prod : chemin fixe de secours
   ]
   for (const p of candidates) {
     if (p && existsSync(p)) return p
@@ -76,10 +78,16 @@ export function loadApps(): AppConfig[] {
   }
 }
 
+// PATH standard : dans un build empaqueté, process.env.PATH peut être minimal et ne pas
+// contenir /usr/bin → sudo/systemd-run/systemctl introuvables. On garantit un PATH sain.
+const SAFE_PATH = `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${
+  process.env.PATH ?? ''
+}`
+
 /** Exécute une commande et renvoie { ok, out } (stdout+stderr) */
 function run(cmd: string, args: string[]): Promise<{ ok: boolean; out: string }> {
   return new Promise((resolve) => {
-    const child = spawn(cmd, args)
+    const child = spawn(cmd, args, { env: { ...process.env, PATH: SAFE_PATH } })
     let out = ''
     child.stdout.on('data', (d) => (out += d.toString()))
     child.stderr.on('data', (d) => (out += d.toString()))
@@ -97,7 +105,7 @@ function systemctl(
   // is-active est en lecture seule → pas de sudo.
   const needsSudo = action === 'start' || action === 'stop'
   return needsSudo
-    ? run('sudo', ['systemctl', action, service])
+    ? run('sudo', ['-n', 'systemctl', action, service])
     : run('systemctl', [action, service])
 }
 
@@ -144,6 +152,7 @@ export async function launch(
     // retour de systemd-run pour remonter une éventuelle erreur (sudo, unité, etc.).
     // Via /bin/bash → pas besoin du bit exécutable sur le script.
     const r = await run('sudo', [
+      '-n',
       'systemd-run',
       '--collect',
       '/bin/bash',
