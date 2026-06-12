@@ -1,12 +1,16 @@
 import { LayoutGrid } from 'lucide-react'
+import { Toaster } from 'sonner'
 import AppCard from './components/AppCard'
 import { useApps } from './hooks/useApps'
 
 function App(): JSX.Element {
-  const { apps, statusMap, errors, toggle } = useApps()
+  const { apps, statusMap, toggle } = useApps()
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-950 text-slate-100">
+      {/* Notifications (erreurs, etc.) */}
+      <Toaster theme="dark" richColors position="top-center" />
+
       {/* En-tête */}
       <header className="flex items-center justify-between border-b border-slate-800/60 bg-slate-950/50 px-8 py-5 backdrop-blur-sm">
         <div className="flex items-center gap-3">
@@ -39,7 +43,6 @@ function App(): JSX.Element {
                 key={app.id}
                 app={app}
                 status={statusMap[app.id] ?? 'stopped'}
-                error={errors[app.id]}
                 onToggle={toggle}
               />
             ))}

@@ -17,8 +17,9 @@ let mainWindow: BrowserWindow | null = null
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1024,
-    height: 720,
+    height: 600,
     show: false,
+    resizable: false,
     autoHideMenuBar: true,
     title: 'APP Launcher',
     ...(process.platform === 'linux' ? { icon } : {}),

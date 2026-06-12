@@ -1,11 +1,10 @@
-import { Play, Square, AlertCircle, type LucideIcon } from 'lucide-react'
+import { Play, Square, type LucideIcon } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import type { AppConfig, AppStatus } from '../types'
 
 interface AppCardProps {
   app: AppConfig
   status: AppStatus
-  error?: string
   onToggle: (id: string) => void
 }
 
@@ -17,7 +16,7 @@ function resolveIcon(name?: string): LucideIcon {
   return Icons.AppWindow
 }
 
-export default function AppCard({ app, status, error, onToggle }: AppCardProps): JSX.Element {
+export default function AppCard({ app, status, onToggle }: AppCardProps): JSX.Element {
   const running = status === 'running'
   const hasError = status === 'error'
   const Icon = resolveIcon(app.icon)
@@ -53,13 +52,6 @@ export default function AppCard({ app, status, error, onToggle }: AppCardProps):
       {/* Texte */}
       <h3 className="text-lg font-bold text-white">{app.name}</h3>
       {app.description && <p className="mt-1 text-sm text-slate-400">{app.description}</p>}
-
-      {hasError && error && (
-        <div className="mt-3 flex items-start gap-1.5 rounded-lg bg-red-500/10 p-2 text-xs text-red-400">
-          <AlertCircle size={14} className="mt-0.5 shrink-0" />
-          <span className="break-all">{error}</span>
-        </div>
-      )}
 
       {/* Bouton lancer/arrêter */}
       <button

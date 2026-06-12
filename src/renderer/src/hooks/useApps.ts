@@ -1,24 +1,36 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { toast } from 'sonner'
 import type { AppConfig, AppState, AppStatus } from '../types'
 
 /**
  * Charge la liste des applications, suit leur état (lancée/arrêtée/erreur)
- * et expose les actions launch/stop.
+ * et expose les actions launch/stop. Les erreurs sont remontées en notifications (toast).
  */
 export function useApps(): {
   apps: AppConfig[]
   statusMap: Record<string, AppStatus>
-  errors: Record<string, string | undefined>
   toggle: (id: string) => Promise<void>
 } {
   const [apps, setApps] = useState<AppConfig[]>([])
   const [statusMap, setStatusMap] = useState<Record<string, AppStatus>>({})
-  const [errors, setErrors] = useState<Record<string, string | undefined>>({})
 
-  const applyState = useCallback((s: AppState) => {
-    setStatusMap((prev) => ({ ...prev, [s.id]: s.status }))
-    setErrors((prev) => ({ ...prev, [s.id]: s.error }))
+  // Référence vers la liste courante (pour retrouver un nom sans recréer les callbacks)
+  const appsRef = useRef<AppConfig[]>([])
+  appsRef.current = apps
+
+  const nameOf = useCallback((id: string): string => {
+    return appsRef.current.find((a) => a.id === id)?.name ?? id
   }, [])
+
+  const applyState = useCallback(
+    (s: AppState) => {
+      setStatusMap((prev) => ({ ...prev, [s.id]: s.status }))
+      if (s.status === 'error') {
+        toast.error(`${nameOf(s.id)}`, { description: s.error })
+      }
+    },
+    [nameOf]
+  )
 
   // Chargement initial : apps + états + abonnement aux changements
   useEffect(() => {
@@ -51,5 +63,5 @@ export function useApps(): {
     [statusMap, applyState]
   )
 
-  return { apps, statusMap, errors, toggle }
+  return { apps, statusMap, toggle }
 }
