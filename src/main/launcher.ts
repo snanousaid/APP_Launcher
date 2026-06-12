@@ -66,8 +66,13 @@ function systemctl(
   action: 'start' | 'stop' | 'is-active',
   service: string
 ): Promise<{ ok: boolean; out: string }> {
+  // start/stop nécessitent les privilèges → sudo (sudoers NOPASSWD requis).
+  // is-active est en lecture seule → pas de sudo.
+  const needsSudo = action === 'start' || action === 'stop'
+  const cmd = needsSudo ? 'sudo' : 'systemctl'
+  const args = needsSudo ? ['systemctl', action, service] : [action, service]
   return new Promise((resolve) => {
-    const child = spawn('systemctl', [action, service])
+    const child = spawn(cmd, args)
     let out = ''
     child.stdout.on('data', (d) => (out += d.toString()))
     child.stderr.on('data', (d) => (out += d.toString()))
