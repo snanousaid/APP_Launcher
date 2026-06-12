@@ -4,11 +4,10 @@
 # Lancé en parallèle de l'app par son script (fridge.sh, viogris.sh, ...).
 
 export DISPLAY=:0
-TITLE="retour-overlay"
 
 # Bouton flottant (en arrière-plan). Le bouton renvoie 0 quand on clique dessus.
 yad --undecorated --on-top --sticky --skip-taskbar --no-escape \
-    --title="$TITLE" --geometry=130x70-15-15 \
+    --geometry=130x70-15-15 \
     --text="" --button="⟲ Retour:0" &
 YAD_PID=$!
 
@@ -16,11 +15,17 @@ YAD_PID=$!
 trap 'kill "$YAD_PID" "$RAISER_PID" 2>/dev/null' EXIT
 
 # L'app peut s'afficher APRÈS le bouton et le recouvrir (pas de gestionnaire de fenêtres).
-# On ré-élève donc le bouton au-dessus toutes les 3 s tant qu'il existe.
+# On retrouve la fenêtre du bouton par son PID, puis on la remonte au-dessus chaque seconde.
 (
+  WID=""
+  for i in $(seq 1 50); do
+    WID=$(xdotool search --pid "$YAD_PID" 2>/dev/null | tail -1)
+    [ -n "$WID" ] && break
+    sleep 0.2
+  done
   while kill -0 "$YAD_PID" 2>/dev/null; do
-    xdotool search --name "$TITLE" windowraise 2>/dev/null
-    sleep 3
+    [ -n "$WID" ] && xdotool windowraise "$WID" 2>/dev/null
+    sleep 1
   done
 ) &
 RAISER_PID=$!
